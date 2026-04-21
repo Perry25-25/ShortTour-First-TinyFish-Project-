@@ -1,1 +1,120 @@
+from tinyfish import TinyFish
+import json
 
+client = TinyFish(api_key="sk-tinyfish-0HGVd82S3mTB4Gpe7XiAvdgzNC7eB4P6")
+
+def extract_city_highlights(city_name):
+    """
+    Extract top 5 recommendations across 7 categories for any city
+    """
+    
+    categories = [
+        {
+            "name": "food",
+            "goal": f"""Find the top 5 MUST-TRY local dishes/foods in {city_name}. 
+            For EACH dish, identify: 
+            - dish name
+            - description (2-3 sentences)
+            - 2-3 best restaurants to try it at (with restaurant name and brief note)
+            - approximate price range ($, $$, $$$)
+            Return as JSON array with keys: dish, description, restaurants (array of [name, note]), price_range"""
+        },
+        
+        {
+            "name": "landmarks",
+            "goal": f"""Find the top 5 MUST-VISIT landmarks and attractions in {city_name}.
+            For EACH landmark:
+            - name
+            - why it's famous (1 sentence)
+            - approximate visit duration (e.g., "2 hours")
+            - best time to visit (e.g., "early morning to avoid crowds")
+            - ticket price range or "free"
+            Return as JSON array with keys: name, fame_reason, duration, best_time, price"""
+        },
+        
+        {
+            "name": "hidden_gems",
+            "goal": f"""Find the top 5 hidden gems or off-the-beaten-path spots in {city_name}.
+            These should be places NOT in typical guidebooks.
+            For EACH spot:
+            - name
+            - location/neighborhood
+            - why locals love it (1-2 sentences)
+            - best way to get there
+            Return as JSON array with keys: name, neighborhood, local_appeal, how_to_get_there"""
+        },
+        
+        {
+            "name": "experiences",
+            "goal": f"""Find the top 5 unique experiences or activities to DO in {city_name}.
+            Examples: cooking class, boat tour, workshop, hiking trail, performance.
+            For EACH:
+            - activity name
+            - brief description
+            - typical duration
+            - approximate cost
+            - best season/weather for it
+            Return as JSON array with keys: activity, description, duration, cost, best_season"""
+        },
+        
+        {
+            "name": "shopping",
+            "goal": f"""Find the top 5 things to BUY as souvenirs or local products in {city_name}.
+            For EACH:
+            - product name
+            - what makes it special to this city
+            - best market/shop to buy it (name and location)
+            - price range
+            Return as JSON array with keys: product, uniqueness, where_to_buy, price_range"""
+        },
+        
+        {
+            "name": "nightlife",
+            "goal": f"""Find the top 5 nightlife spots in {city_name}.
+            Include a mix of bars, clubs, live music, or evening activities.
+            For EACH:
+            - venue name
+            - type (bar/club/live music/etc.)
+            - vibe description (e.g., "chill rooftop", "dance club", "jazz lounge")
+            - average drink price or cover charge
+            - best night to go
+            Return as JSON array with keys: name, type, vibe, price, best_night"""
+        },
+        
+        {
+            "name": "cafes",
+            "goal": f"""Find the top 5 cafes or quick-bite spots in {city_name}.
+            Focus on coffee, pastries, or affordable local eats.
+            For EACH:
+            - cafe name
+            - signature item (e.g., "their croissants", "local coffee blend")
+            - average price for coffee + pastry
+            - quiet/study-friendly or social/chatty vibe
+            Return as JSON array with keys: name, signature_item, avg_price, vibe"""
+        }
+    ]
+    
+    results = {}
+    
+    for category in categories:
+        print(f"Extracting {category['name']} for {city_name}...")
+        
+        response = client.agent.run(
+            url=f"https://www.google.com/search?q=best+{category['name']}+in+{city_name}+travel+guide",
+            goal=category['goal']
+        )
+        
+        results[category['name']] = response
+    
+    return results
+
+# Example usage
+if __name__ == "__main__":
+    city = input("Enter city name: ")
+    recommendations = extract_city_highlights(city)
+    
+    # Save to file
+    with open(f"{city}_travel_guide.json", "w") as f:
+        json.dump(recommendations, f, indent=2)
+    
+    print(f"✅ Complete! Check {city}_travel_guide.json")
